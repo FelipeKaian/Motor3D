@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>3D</title>
+	<style>
+
+		body{
+			position: absolute;
+			top: 0px;
+			bottom: 0px;
+			left: 0px;
+			right: 0px;
+			margin: auto;
+			/cursor:none;/ 
+		}
+
+	</style>
+</head>
+<body>
+	<script>
+
+		//TESTS///////////////////////////////////////////////////////////////////////////
+	
+		//////////////////////////////////////////////////////////////////////////////////
+
+		var sw = 1920, sh = 1080, run = true;
+
+		//////////////////////////////////////////////////////////////////////////////////
+
+		var canvas = document.createElement('canvas'),ctx = canvas.getContext('2d');
+		document.body.appendChild(canvas);
+		canvas.width = sw;
+		canvas.height = sh;
+		window.onload = function(){
+			document.oncontextmenu = function(){
+				place();
+				return false;
+			}
+		}
+		
+
+		// VARS //////////////////////////////////////////////////////////////////////////
+
+		//blocks
+		var blocks = [/*{x:0,y:[{y:0,z:[{z:0,c:{r:255,g:255,b:255}}]}]}*/] , nullCache = [], cacheSize = 5;
+
+		function find(x,y,z){
+			
+			/*for (var i = nullCache.length - 1; i >= 0; i--) {
+				if (nullCache[i].x == x) {
+					if (nullCache[i].y == y) {
+						if (nullCache[i].z == z) {
+							return null;
+						}
+					}
+				}
+			}*/
+
+			let found = search(x,y,z);
+			
+			/*if(found == null){
+				remove(nullCache,x,y,z);
+				while(nullCache.length >= cacheSize){
+					nullCache.splice(0,1);
+				}
+				add(nullCache,x,y,z);
+			}*/
+
+			return found;		
+		}
+
+		function search(x,y,z){
+			let e = blocks;
+			let idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+			while(min !=  max){
+				if(x > e[idx].x){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(x < e[idx].x){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].x != x) {
+				return null;
+			}
+
+			e= e[min].y;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+
+			while(min !=  max){
+				if(y > e[idx].y){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(y < e[idx].y){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].y != y) {
+				return null;
+			}
+
+			e= e[min].z;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+			
+			while(min != max){
+				if(z > e[idx].z){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(z < e[idx].z){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].z != z) {
+				return null;
+			}
+
+			return e[min].c;
+			
+		}
+
+		// checar blocks de tras pra frente
+		function add(x,y,z,r,g,b) {
+
+			let e = blocks;
+
+			let idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+
+			while(min !=  max){
+				if(x > e[idx].x){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(x < e[idx].x){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].x != x) {
+				e.push({x,y:[{y,z:[{z,c:{r,g,b}}]}]});
+
+				for (var i = 0; i < e.length-1; i++) {
+					if(e[i].x > e[i+1].x){
+						let aux = e[i];
+						e[i] = e[i+1];
+						e[i+1] = aux;
+						i-=(i==0?1:2);
+					}
+				}
+
+				return
+			}
+
+			e = e[min].y;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+
+			while(min !=  max){
+				if(y > e[idx].y){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(y < e[idx].y){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].y != y) {
+				e.push({y,z:[{z,c:{r,g,b}}]});
+				
+				for (var i = 0; i < e.length-1; i++) {
+					if(e[i].y > e[i+1].y){
+						let aux = e[i];
+						e[i] = e[i+1];
+						e[i+1] = aux;
+						i-=(i==0?1:2);
+					}
+				}
+
+				return
+			}
+
+			e = e[min].z;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+			
+			while(min != max){
+				if(z > e[idx].z){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(z < e[idx].z){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			if (e[min].z != z) {
+				e.push({z,c:{r,g,b}});
+				
+				for (var i = 0; i < e.length-1; i++) {
+					if(e[i].z > e[i+1].z){
+						let aux = e[i];
+						e[i] = e[i+1];
+						e[i+1] = aux;
+						i-=(i==0?1:2);
+					}
+				}
+
+				return
+			}
+			
+		}
+
+		function remove(e,x,y,z) {
+			//search() com um splice no final;
+		}
+
+		function place() {
+
+			let DistView = 0,lx=Math.floor(px),ly=Math.floor(py),lz=Math.floor(pz);
+
+			let dist = 0;
+
+			let dx = lx,dy = ly,dz = lz;
+
+			while(DistView < maxDistView){
+
+				while(true){
+					if(dx != lx){
+						break;
+					}else{
+						if(dy != ly){
+							break;
+						}else{
+							if(dz != lz){
+								break;
+							}else{
+								dist+=distProcess;
+								dx = Math.floor(px + dist * Math.sin((xangle * Math.PI) / 180));
+								dy = Math.floor(py + dist * Math.cos((xangle * Math.PI) / 180));
+								dz = Math.floor(pz + dist * Math.cos((yangle * Math.PI) / 180));
+							}
+						}
+					}
+				}
+
+				if(find(dx,dy,dz)){
+					add(lx,ly,lz,colorSet.r,colorSet.g,colorSet.b);
+					remove(nullCache,lx,ly,lz)
+					break;
+				}else{
+					lx=dx;
+					ly=dy;
+					lz=dz;
+					DistView++;
+				}
+			}
+
+		}
+
+		function destroy() {
+
+			let DistView = 0,lx=Math.floor(px),ly=Math.floor(py),lz=Math.floor(pz);
+			
+			let dist = 0;
+
+			let dx = lx,dy = ly,dz = lz;
+
+			while(DistView < maxDistView){
+
+				while(true){
+					if(dx != lx){
+						break;
+					}else{
+						if(dy != ly){
+							break;
+						}else{
+							if(dz != lz){
+								break;
+							}else{
+								dist+=distProcess;
+								dx = Math.floor(px + dist * Math.sin((xangle * Math.PI) / 180));
+								dy = Math.floor(py + dist * Math.cos((xangle * Math.PI) / 180));
+								dz = Math.floor(pz + dist * Math.cos((yangle * Math.PI) / 180));
+							}
+						}
+					}
+				}
+
+				if(find(dx,dy,dz)){
+					remove(blocks,dx,dy,dz);
+					add(nullCache,dx,dy,dz);
+					break;
+				}else{
+					lx=dx;
+					ly=dy;
+					lz=dz;
+					DistView++;
+				}
+			}		
+		}
+		
+
+		//render vars
+		var fovX = 90, fovY = 60, precision = 0.3, distProcess = 0.1, maxDistView = 100, bgColor = "#99ccff", defaultGroundColor = "#ff0000", fpsCout = 0, fps = 0,sizemension = 1;
+		
+		//player vars
+		var xangle = 0, yangle = 0, px = 0, py = 0, pz = 0, pSpeed = 0.5, rotateSpeedX = 3;
+
+		//input vars
+		var w = false, s = false,a = false, d = false, au = false,ad = false,al = false,ar = false, space = false, shift = false;
+		var mouseMoveX = 0, mouseMoveY = 0, camSensibility = 0.2;
+
+		var colorSet = {r:255,g:0,b:0};
+
+		const MAX_COLOR = 4294967295, LIGHT_UNIT = 65802;
+
+		document.addEventListener('keydown', function(event) {
+
+			if (event.code == 'Space') {
+				space = true;
+			}
+			if (event.code == 'KeyW') {
+				w = true;
+			}
+			if (event.code == 'KeyS') {
+
+				s = true;
+			}
+			if (event.code == 'KeyA') {
+				a = true;
+			}
+			if (event.code == 'KeyD') {
+				d = true;
+			}
+			if (event.code == 'ArrowLeft') {
+				al = true;
+			}
+			if (event.code == 'ArrowRight') {
+				ar = true;
+			}
+			if (event.code == 'ArrowUp') {
+				au = true;
+			}
+			if (event.code == 'ArrowDown') {
+				ad = true;
+			}
+		});
+
+		document.addEventListener('keyup', function(event) {
+
+			if (event.code == 'Space') {
+				space = false;
+			}
+			if (event.code == 'KeyW') {
+				w = false;
+			}
+			if (event.code == 'KeyS') {
+				s = false;
+			}
+			if (event.code == 'KeyA') {
+				a = false;
+			}
+			if (event.code == 'KeyD') {
+				d = false;
+			}
+			if (event.code == 'ArrowLeft') {
+				al = false;
+			}
+			if (event.code == 'ArrowRight') {
+				ar = false;
+			}
+			if (event.code == 'ArrowUp') {
+				au = false;
+			}
+			if (event.code == 'ArrowDown') {
+				ad = false;
+			}
+		});
+
+		document.addEventListener('mousemove', function(event) {
+			mouseMoveX = event.movementX;
+			mouseMoveY = event.movementY;
+		});
+
+		document.addEventListener('wheel', function(event){
+			let ci = event.deltaY*0.1;
+			if(colorSet.r+ci <= 255){
+				colorSet.r=Math.floor(colorSet.r+ci)
+			}else{
+				colorSet.r=255;
+				ci = 255-colorSet.r;
+				if(colorSet.g+ci <= 255){
+					colorSet.g=Math.floor(colorSet.r+ci)
+				}else{
+					colorSet.g=255;
+					ci = 255-colorSet.g;
+					if(colorSet.b+ci <= 255){
+						colorSet.b=Math.floor(colorSet.r+ci)
+					}else{
+						colorSet.b=255;
+					}
+				}
+			}
+		});
+
+		document.addEventListener('mousedown',  function(event){
+			//alert(event.button);
+			if (event.button == 0) {
+				destroy();
+			}else if (event.button == 1) {
+				colorSet = {r:0,g:0,b:0};
+			}else if (event.button == 2) {
+				place();
+			}
+		})
+
+		// UTILITY ///////////////////////////////////////////////////////////////////////
+
+		function toColor(r,g,b){
+
+			if(r > 255){
+				r = 255;
+			}
+			if(r < 0){
+				r = 0;
+			}
+			if(g > 255){
+				g = 255;
+			}
+			if(g < 0){
+				g = 0;
+			}
+			if(b > 255){
+				b = 255;
+			}
+			if(b < 0){
+				b = 0;
+			}
+
+			return '#'+(r<16?('0'+r.toString(16)):r.toString(16))+(g<16?'0'+g.toString(16):g.toString(16))+(b<16?'0'+b.toString(16):b.toString(16));
+		}
+		
+		// UPDATE ////////////////////////////////////////////////////////////////////////
+
+		function update(){
+
+			if (w) {
+				px += pSpeed * Math.sin((((xangle) % 360) * Math.PI) / 180);
+				py += pSpeed * Math.cos((((xangle) % 360) * Math.PI) / 180);
+			}
+
+			if (s) {
+				px += pSpeed * Math.sin((((xangle - 180) % 360) * Math.PI) / 180);
+				py += pSpeed * Math.cos((((xangle - 180) % 360) * Math.PI) / 180);
+			}
+
+			if (a) {
+				px += pSpeed * Math.sin((((xangle - 90) % 360) * Math.PI) / 180);
+				py += pSpeed * Math.cos((((xangle - 90) % 360) * Math.PI) / 180);
+			}
+
+			if (d) {
+				px += pSpeed * Math.sin((((xangle + 90) % 360) * Math.PI) / 180);
+				py += pSpeed * Math.cos((((xangle + 90) % 360) * Math.PI) / 180);
+			}
+
+			if (al) {
+				xangle -= rotateSpeedX;	
+			}
+
+			if (ar) {
+				xangle += rotateSpeedX;
+			}
+
+			if (au && (yangle - rotateSpeedX> 0 && yangle - rotateSpeedX< 180)) {
+				yangle -= rotateSpeedX;	
+			}
+
+			if (ad && (yangle + rotateSpeedX> 0 && yangle + rotateSpeedX< 180)) {
+				yangle += rotateSpeedX;
+			}
+			
+			xangle+= mouseMoveX*camSensibility;
+		/*if (xangle< -90) {
+			xangle = -90;
+		}
+		if (xangle > 90) {
+			xangle = 90;
+		}*/
+		if(yangle + mouseMoveY*camSensibility > 0 || yangle + mouseMoveY*camSensibility < 180){
+			yangle+= mouseMoveY*camSensibility;
+		}
+		/*if (yangle< -90) {
+			yangle = -90;
+		}
+		if (yangle> 90) {
+			yangle = 90;
+		}*/
+		mouseMoveX=mouseMoveY=0;
+
+		if (space) {
+			//put();
+			pz+=pSpeed
+			space = false;
+		}
+
+		/*xangle%=360;
+
+		yangle%=360;
+
+		if(xangle<0){
+			xangle+=360;
+		}
+
+		if(yangle<0){
+			yangle+=360;
+		}*/
+	}
+
+		// RENDER ///////////////////////////////////////////////////////////////////////
+
+		function render(){
+
+			ctx.fillStyle = bgColor;
+			ctx.fillRect(0,0,sw,sh);
+
+			let ax0 = xangle-(fovX/2), ay0 = yangle-(fovY/2);
+
+			for (var a=0 ,i = ax0; i <= ax0+fovX; i += precision,a+=precision) {
+				let vx = Math.sin((i * Math.PI) / 180),vy = Math.cos((i * Math.PI) / 180)
+				for (var b=0 ,j = ay0; j <= ay0+fovY; j += precision,b+=precision) {
+					let vz = Math.cos((j * Math.PI) / 180), vv = vx+vy+vz;
+					let DistView = 0 , dx,dy,dz,cx=0,cy=0,cz=0,mx=0,my=0,mz=0,sx=Math.floor(px),sy=Math.floor(py),sz=Math.floor(pz),dist;
+					
+					while(DistView < maxDistView){
+
+						DistView++;
+						
+						let lx = (cx/vx)*vv;
+						let ly = (cy/vy)*vv;
+						let lz = (cz/vz)*vv;
+
+						if (lx<ly) {
+							if (lx<lz) {
+								//DistView += lx;
+								dist = cx/vx;
+								dx = sx+cx;
+								dy = Math.floor(sy + dist * vy); 
+								dz = Math.floor(sz + dist * vz);
+								cx++;
+							}else{
+								//DistView += lz;
+								dist = cz/vz;
+								dx = Math.floor(sx + dist * vx);
+								dy = Math.floor(sy + dist * vy); 
+								dz = sz+cz;
+								cz++;
+							}
+						}else{
+							if (ly<lz) {
+								//DistView += ly;
+								dist = cy/vy;
+								dx = Math.floor(sx + dist * vx);
+								dy = sy+cy; 
+								dz = Math.floor(sz + dist * vz);
+								cy++;
+							}else{
+								//DistView += lz;
+								dist = cz/vz;
+								dx = Math.floor(sx + dist * vx);
+								dy = Math.floor(sy + dist * vy); 
+								dz = sz+cz;
+								cz++;
+							}
+						}
+					
+						let block = find(dx,dy,dz);
+						
+						if(block != null){
+							//let w = Math.floor((sw/(fovX))*precision), h = Math.floor((sh/(((fovY)*precision))));
+							let w = Math.floor((sw/(fovX))*precision), h = Math.floor((sh/(fovY))*precision), light = 0// Math.floor((-256/(maxDistView*maxDistView)*(dist+maxDistView)*(dist+maxDistView)))+256;
+							ctx.fillStyle = toColor(block.r + light, block.g + light, block.b + light);
+							ctx.fillRect(w*a/precision,h*b/precision,w+2,h+2);
+							break;
+						}else{
+							lx=dx;
+							ly=dy;
+							lz=dz;
+							DistView++;
+						}
+					}
+				}
+			}
+
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect(sw/2-5,sh/2-1,10,2);
+			ctx.fillRect(sw/2-1,sh/2-5,2,10);
+			ctx.fillStyle = toColor(colorSet.r,colorSet.g,colorSet.b);
+			ctx.fillRect(30,sh-80,50,50)
+		}
+
+		// BASE TERRAIN /////////////////////////////////////////////////////////
+
+		for (var i = 0; i < 10; i++) {
+			blocks.push({x:i,y:[]})
+			for (var j = 0; j < 10; j++) {
+				blocks[i].y.push({y:j,z:[]})
+				for (var k = 0; k < 10; k++) {
+					blocks[i].y[j].z.push({z:k,c:{r:0,g:rand(100)+60,b:0}})
+				}
+			}
+		}
+
+		
+
+		// GAME LOOP /////////////////////////////////////////////////////////////////////
+		if(run){
+			setInterval(function(){
+				if(run){
+					update();
+					render();
+				}
+				ctx.fillStyle = "#000000";
+				ctx.fillText(fps,50,50);
+				fpsCout++;
+				ctx.fillStyle = "#000000";
+				ctx.fillText(xangle,50,100);
+				ctx.fillStyle = "#000000";
+				ctx.fillText(yangle,50,150);
+			},0)
+			alert('rendered')
+			setInterval(function(){
+				fps = fpsCout;
+				fpsCout = 0; 
+			},1000)
+		}
+		
+
+
+		//blocks = [{x:3,y: [{y:3,z: [{z:3}]}]}];
+
+		//dx = Math.floor(px + dist * vx);
+		//dy = Math.floor(py + dist * vy); 
+		//dz = Math.floor(pz + dist * vz);
+
+		//mx = cx/vx;
+		//my = cy/vy;
+		//mz = cz/vz;
+
+		function rand(n){
+			return Math.floor(Math.random()*n);
+		}
+
+		function sort(arr){
+
+			for (var i = 0; i < arr.length-1; i++) {
+				if(arr[i] > arr[i+1]){
+					let aux = arr[i];
+					arr[i] = arr[i+1];
+					arr[i+1] = aux;
+					i-=2;
+				}
+			}
+
+			return arr;
+		}
+
+
+	</script>
+</body>
+</html>
