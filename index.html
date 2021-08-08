@@ -4,23 +4,23 @@
 	<title>3D</title>
 	<style>
 
-		body{
-			position: absolute;
-			top: 0px;
-			bottom: 0px;
-			left: 0px;
-			right: 0px;
-			margin: auto;
-			/cursor:none;/ 
-		}
+	body{
+		position: absolute;
+		top: 0px;
+		bottom: 0px;
+		left: 0px;
+		right: 0px;
+		margin: auto;
+		/cursor:none;/ 
+	}
 
-	</style>
+</style>
 </head>
 <body>
 	<script>
 
 		//TESTS///////////////////////////////////////////////////////////////////////////
-	
+
 		//////////////////////////////////////////////////////////////////////////////////
 
 		var sw = 1920, sh = 1080, run = true;
@@ -70,6 +70,7 @@
 		}
 
 		function search(x,y,z){
+
 			let e = blocks;
 			let idx = Math.floor(e.length/2),max = e.length-1,min = 0;
 			while(min !=  max){
@@ -138,7 +139,6 @@
 			let e = blocks;
 
 			let idx = Math.floor(e.length/2),max = e.length-1,min = 0;
-
 			while(min !=  max){
 				if(x > e[idx].x){
 					min = idx+1;
@@ -151,17 +151,11 @@
 					break;
 				}
 			}
+
 			if (e[min].x != x) {
 				e.push({x,y:[{y,z:[{z,c:{r,g,b}}]}]});
 
-				for (var i = 0; i < e.length-1; i++) {
-					if(e[i].x > e[i+1].x){
-						let aux = e[i];
-						e[i] = e[i+1];
-						e[i+1] = aux;
-						i-=(i==0?1:2);
-					}
-				}
+				e = sort(e)
 
 				return
 			}
@@ -182,17 +176,11 @@
 					break;
 				}
 			}
+
 			if (e[min].y != y) {
 				e.push({y,z:[{z,c:{r,g,b}}]});
 				
-				for (var i = 0; i < e.length-1; i++) {
-					if(e[i].y > e[i+1].y){
-						let aux = e[i];
-						e[i] = e[i+1];
-						e[i+1] = aux;
-						i-=(i==0?1:2);
-					}
-				}
+				e = sort(e)
 
 				return
 			}
@@ -216,50 +204,123 @@
 			if (e[min].z != z) {
 				e.push({z,c:{r,g,b}});
 				
-				for (var i = 0; i < e.length-1; i++) {
-					if(e[i].z > e[i+1].z){
-						let aux = e[i];
-						e[i] = e[i+1];
-						e[i+1] = aux;
-						i-=(i==0?1:2);
-					}
-				}
+				e = sort(e)
 
 				return
 			}
 			
 		}
 
-		function remove(e,x,y,z) {
-			//search() com um splice no final;
+		function remove(x,y,z) {
+
+			let e = blocks;
+
+			let idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+			while(min !=  max){
+				if(x > e[idx].x){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(x < e[idx].x){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+
+			if (e[min].y.length == 1 && e[min].y[0].z.length == 1) {
+				e.splice(min,1)
+				return
+			}
+
+			e = e[min].y;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+
+			while(min !=  max){
+				if(y > e[idx].y){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(y < e[idx].y){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+
+			if (e[min].z.length == 1) {
+				e.splice(min,1)
+				return
+			}
+
+			e = e[min].z;
+
+			idx = Math.floor(e.length/2),max = e.length-1,min = 0;
+			
+			while(min != max){
+				if(z > e[idx].z){
+					min = idx+1;
+					idx = Math.floor((max+idx)/2);
+				}else if(z < e[idx].z){
+					max = idx-1;
+					idx = Math.floor((idx+min)/2)
+				}else{
+					min = idx;
+					break;
+				}
+			}
+			
+			e.splice(min,1)
+
 		}
 
 		function place() {
 
-			let DistView = 0,lx=Math.floor(px),ly=Math.floor(py),lz=Math.floor(pz);
-
-			let dist = 0;
-
-			let dx = lx,dy = ly,dz = lz;
+			let vx = Math.sin((xangle * Math.PI) / 180),vy = Math.cos((xangle * Math.PI) / 180),vz = Math.cos((yangle * Math.PI) / 180), vv = vx+vy+vz;
+			let DistView = 0 , dx,dy,dz,cx=0,cy=0,cz=0,mx=0,my=0,mz=0,sx=Math.floor(px),sy=Math.floor(py),sz=Math.floor(pz),dist;
 
 			while(DistView < maxDistView){
 
-				while(true){
-					if(dx != lx){
-						break;
+				DistView++;
+
+				let lx = (cx/vx)*vv;
+				let ly = (cy/vy)*vv;
+				let lz = (cz/vz)*vv;
+
+				if (lx<ly) {
+					if (lx<lz) {
+						//DistView += lx;
+						dist = cx/vx;
+						dx = sx+cx;
+						dy = Math.floor(sy + dist * vy); 
+						dz = Math.floor(sz + dist * vz);
+						cx++;
 					}else{
-						if(dy != ly){
-							break;
-						}else{
-							if(dz != lz){
-								break;
-							}else{
-								dist+=distProcess;
-								dx = Math.floor(px + dist * Math.sin((xangle * Math.PI) / 180));
-								dy = Math.floor(py + dist * Math.cos((xangle * Math.PI) / 180));
-								dz = Math.floor(pz + dist * Math.cos((yangle * Math.PI) / 180));
-							}
-						}
+						//DistView += lz;
+						dist = cz/vz;
+						dx = Math.floor(sx + dist * vx);
+						dy = Math.floor(sy + dist * vy); 
+						dz = sz+cz;
+						cz++;
+					}
+				}else{
+					if (ly<lz) {
+						//DistView += ly;
+						dist = cy/vy;
+						dx = Math.floor(sx + dist * vx);
+						dy = sy+cy; 
+						dz = Math.floor(sz + dist * vz);
+						cy++;
+					}else{
+						//DistView += lz;
+						dist = cz/vz;
+						dx = Math.floor(sx + dist * vx);
+						dy = Math.floor(sy + dist * vy); 
+						dz = sz+cz;
+						cz++;
 					}
 				}
 
@@ -279,30 +340,48 @@
 
 		function destroy() {
 
-			let DistView = 0,lx=Math.floor(px),ly=Math.floor(py),lz=Math.floor(pz);
-			
-			let dist = 0;
-
-			let dx = lx,dy = ly,dz = lz;
+			let vx = Math.sin((xangle * Math.PI) / 180),vy = Math.cos((xangle * Math.PI) / 180),vz = Math.cos((yangle * Math.PI) / 180), vv = vx+vy+vz;
+			let DistView = 0 , dx,dy,dz,cx=0,cy=0,cz=0,mx=0,my=0,mz=0,sx=Math.floor(px),sy=Math.floor(py),sz=Math.floor(pz),dist;
 
 			while(DistView < maxDistView){
 
-				while(true){
-					if(dx != lx){
-						break;
+				DistView++;
+
+				let lx = (cx/vx)*vv;
+				let ly = (cy/vy)*vv;
+				let lz = (cz/vz)*vv;
+
+				if (lx<ly) {
+					if (lx<lz) {
+						//DistView += lx;
+						dist = cx/vx;
+						dx = sx+cx;
+						dy = Math.floor(sy + dist * vy); 
+						dz = Math.floor(sz + dist * vz);
+						cx++;
 					}else{
-						if(dy != ly){
-							break;
-						}else{
-							if(dz != lz){
-								break;
-							}else{
-								dist+=distProcess;
-								dx = Math.floor(px + dist * Math.sin((xangle * Math.PI) / 180));
-								dy = Math.floor(py + dist * Math.cos((xangle * Math.PI) / 180));
-								dz = Math.floor(pz + dist * Math.cos((yangle * Math.PI) / 180));
-							}
-						}
+						//DistView += lz;
+						dist = cz/vz;
+						dx = Math.floor(sx + dist * vx);
+						dy = Math.floor(sy + dist * vy); 
+						dz = sz+cz;
+						cz++;
+					}
+				}else{
+					if (ly<lz) {
+						//DistView += ly;
+						dist = cy/vy;
+						dx = Math.floor(sx + dist * vx);
+						dy = sy+cy; 
+						dz = Math.floor(sz + dist * vz);
+						cy++;
+					}else{
+						//DistView += lz;
+						dist = cz/vz;
+						dx = Math.floor(sx + dist * vx);
+						dy = Math.floor(sy + dist * vy); 
+						dz = sz+cz;
+						cz++;
 					}
 				}
 
@@ -318,10 +397,10 @@
 				}
 			}		
 		}
-		
+
 
 		//render vars
-		var fovX = 90, fovY = 60, precision = 0.3, distProcess = 0.1, maxDistView = 100, bgColor = "#99ccff", defaultGroundColor = "#ff0000", fpsCout = 0, fps = 0,sizemension = 1;
+		var fovX = 90, fovY = 60, precision = 1, distProcess = 0.1, maxDistView = 100, bgColor = "#99ccff", defaultGroundColor = "#ff0000", fpsCout = 0, fps = 0,sizemension = 1;
 		
 		//player vars
 		var xangle = 0, yangle = 0, px = 0, py = 0, pz = 0, pSpeed = 0.5, rotateSpeedX = 3;
@@ -525,13 +604,10 @@
 		}
 
 		/*xangle%=360;
-
 		yangle%=360;
-
 		if(xangle<0){
 			xangle+=360;
 		}
-
 		if(yangle<0){
 			yangle+=360;
 		}*/
@@ -593,7 +669,7 @@
 								cz++;
 							}
 						}
-					
+
 						let block = find(dx,dy,dz);
 						
 						if(block != null){
